@@ -50,16 +50,18 @@ def home():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    
-    data = request.get_json()	
-    print("Received webhook data:", data)
-    if not data:
-       return jsonify({'status': 'error', 'message': 'No JSON received'}), 400   
-        	
-    symbol = data.get('symbol')
-    side = data.get('side')
-    qty = data.get('qty')
-    print(f"Placing order: {side.upper()} {qty} of {symbol}")
+    data = request.get_json()
+    print("🔔 Webhook received with data:", data)
+
+    symbol = data.get("symbol")
+    side = data.get("side")
+    qty = data.get("qty")
+
+    print(f"➡️ Placing order: {side.upper()} {qty} units of {symbol}")
+
+    # Simulate trading logic (for now)
+    return jsonify({"status": "success", "message": "Trade executed"})
+
     if not symbol or not side or not qty:
        return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
 
