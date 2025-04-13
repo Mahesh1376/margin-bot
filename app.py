@@ -52,14 +52,14 @@ def home():
 def webhook():
     
     data = request.get_json()	
-
+    print("Received webhook data:", data)
     if not data:
-       return jsonify({'status': 'error', 'message': 'No JSON received'}), 400
-	    	
+       return jsonify({'status': 'error', 'message': 'No JSON received'}), 400   
+        	
     symbol = data.get('symbol')
     side = data.get('side')
     qty = data.get('qty')
-
+    print(f"Placing order: {side.upper()} {qty} of {symbol}")
     if not symbol or not side or not qty:
        return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
 
