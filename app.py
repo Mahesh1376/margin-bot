@@ -15,9 +15,6 @@ app = Flask(__name__)
 API_KEY = os.getenv("API_KEY")
 API_SECRET = os.getenv("API_SECRET")
 
-print("DEBUG: API_KEY =", API_KEY)
-print("DEBUG: API_SECRET =", API_SECRET)
-
 HEADERS = {
     'Content-Type': 'application/json',
     'X-AUTH-APIKEY': API_KEY,
@@ -45,7 +42,7 @@ def place_order(side, symbol, quantity, leverage):
     print(f"[DEBUG] Order response: {response.text}")
     return response.json()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 @app.route('/', methods=['GET'])
 def home():
     return "🚀 CoinDCX Margin Bot is Running!"
@@ -54,6 +51,7 @@ def home():
 def webhook():
     data = request.get_json()
     print("🔔 Webhook received:", data)
+    print(f"📩 TradingView Alert: {data}")
 
     symbol = data.get("symbol")
     side = data.get("side")
@@ -110,3 +108,6 @@ def webhook():
     except Exception as e:
         print("❌ Error placing order:", e)
         return jsonify({"status": "error", "message": str(e)})
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+
