@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify
 import json
 import os
@@ -21,9 +22,9 @@ COINDCX_BASE = 'https://api.coindcx.com'
 def place_order(side, symbol, quantity, leverage):
     path = "/exchange/v1/margin/create_order"
     body = {
-        "symbol": symbol,
-        "side": side.upper(),  # "buy" or "sell"
-        "quantity": quantity,
+        symbol = data.get('symbol')
+        side = data.get('side')
+        qty = data.get('qty')
         "order_type": "market",
         "leverage": leverage,
         "mode": "cross"
@@ -40,35 +41,35 @@ def place_order(side, symbol, quantity, leverage):
     print(f"[DEBUG] Order response: {response.text}")
     return response.json()
 
-
+logging.basicConfig(level=logging.DEBUG)
 @app.route('/', methods=['GET'])
 def home():
     return "🚀 CoinDCX Margin Bot is Running!"
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.json
-    print(f"[WEBHOOK RECEIVED] {data}")
-
-    # Expecting TradingView to send: {"side": "buy", "symbol": "SUIUSDT", "qty": 10, "leverage": 3}
     try:
-        side = data['side']
-        symbol = data['symbol']
-        qty = float(data['qty'])
-        leverage = int(data.get('leverage', 2))  # default to 2x
-
-        result = place_order(side, symbol, qty, leverage)
-        return jsonify({"status": "success", "response": result})
+        # Here, you can add your logic for placing the order with CoinDCX
+        if side.lower() == "long":
+            # Execute long trade logic (buy)
+            app.logger.info(f"Placing long order for {qty} of {symbol}")
+            # Add code to place long order via CoinDCX API (You can use the CoinDCX API wrapper here)
+        
+        elif side.lower() == "short":
+            # Execute short trade logic (sell)
+            app.logger.info(f"Placing short order for {qty} of {symbol}")
+            # Add code to place short order via CoinDCX API
+        
+        else:
+            app.logger.error("Invalid side provided. Must be 'long' or 'short'.")
+            return jsonify({"message": "Invalid side, must be 'long' or 'short'", "status": "error"}), 400
+        
+        # Step 4: Return success response
+        return jsonify({"message": "Order placed successfully", "status": "success"}), 200
+    
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+        app.logger.error(f"Error processing webhook: {e}")
+        return jsonify({"message": "Error processing webhook", "status": "error"}), 500
 
 if __name__ == '__main__':
-    import os
-
-# ...
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Get PORT from Render, default to 5000 locally
-    app.run(host='0.0.0.0', port=port)
-
-
+    app.run(debug=True, host='0.0.0.0', port=10000)  # Make sure to use the correct port for Render deployment
