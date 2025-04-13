@@ -5,12 +5,16 @@ import os
 import hmac
 import hashlib
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()  # Load variables from .env file
 
 app = Flask(__name__)
 
 # Load sensitive info
 API_KEY = os.getenv('c8a90d84e6c1098d453f216fdb0f6480d7b3cad202b68cc3')
 API_SECRET = os.getenv('1b7888990f5090c993a4cc0ce89723462fa89982ff7dcc652adad5c6a064f62c')
+print("API_SECRET is:", API_SECRET)
 
 HEADERS = {
     'Content-Type': 'application/json',
@@ -22,9 +26,7 @@ COINDCX_BASE = 'https://api.coindcx.com'
 def place_order(side, symbol, quantity, leverage):
     path = "/exchange/v1/margin/create_order"
     body = {
-        symbol = data.get('symbol')
-        side = data.get('side')
-        qty = data.get('qty')
+        
         "order_type": "market",
         "leverage": leverage,
         "mode": "cross"
@@ -48,6 +50,19 @@ def home():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
+data = request.get_json()
+    
+    if not data:
+        return jsonify({'status': 'error', 'message': 'No JSON received'}), 400
+
+    symbol = data.get('symbol')
+    side = data.get('side')
+    qty = data.get('qty')
+if not symbol or not side or not qty:
+        return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
+
+    print(f"Received trade request: {symbol}, {side}, {qty}")
+    return jsonify({'status': 'success', 'message': 'Trade executed'})
     try:
         # Here, you can add your logic for placing the order with CoinDCX
         if side.lower() == "long":
