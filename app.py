@@ -51,44 +51,60 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
-    print("🔔 Webhook received with data:", data)
+    print("🔔 Webhook received:", data)
 
     symbol = data.get("symbol")
     side = data.get("side")
     qty = data.get("qty")
 
-    print(f"➡️ Placing order: {side.upper()} {qty} units of {symbol}")
-
-    # Simulate trading logic (for now)
-    return jsonify({"status": "success", "message": "Trade executed"})
-
     if not symbol or not side or not qty:
-       return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
+        return jsonify({"status": "error", "message": "Missing data"}), 400
 
-    print(f"Received trade request: {symbol}, {side}, {qty}")
-    return jsonify({'status': 'success', 'message': 'Trade executed'})
+    # CoinDCX margin endpoint
+    url = "https://api.coindcx.com/exchange/v1/margin/create_order/"
+
+    # Convert qty to float
     try:
-        # Here, you can add your logic for placing the order with CoinDCX
-        if side.lower() == "long":
-            # Execute long trade logic (buy)
-            app.logger.info(f"Placing long order for {qty} of {symbol}")
-            # Add code to place long order via CoinDCX API (You can use the CoinDCX API wrapper here)
-        
-        elif side.lower() == "short":
-            # Execute short trade logic (sell)
-            app.logger.info(f"Placing short order for {qty} of {symbol}")
-            # Add code to place short order via CoinDCX API
-        
-        else:
-            app.logger.error("Invalid side provided. Must be 'long' or 'short'.")
-            return jsonify({"message": "Invalid side, must be 'long' or 'short'", "status": "error"}), 400
-        
-        # Step 4: Return success response
-        return jsonify({"message": "Order placed successfully", "status": "success"}), 200
-    
-    except Exception as e:
-        app.logger.error(f"Error processing webhook: {e}")
-        return jsonify({"message": "Error processing webhook", "status": "error"}), 500
+        qty = float(qty)
+    except ValueError:
+        return jsonify({"status": "error", "message": "Invalid qty"}), 400
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=10000)  # Make sure to use the correct port for Render deployment
+    # Create order params
+    payload = {
+        "symbol": symbol,
+        "side": side.upper(),         # "LONG" or "SHORT"
+        "quantity": qty,
+        "order_type": "market",
+        "leverage": 5,
+        "position_side": "BOTH"       # Cross margin mode
+    }
+
+    timestamp = int(round(time.time() * 1000))
+    body = json.dumps(payload)
+
+    signature = hmac.new(
+        API_SECRET.encode(),
+        body.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-AUTH-APIKEY": API_KEY,
+        "X-AUTH-SIGNATURE": signature,
+        "X-AUTH-TIMESTAMP": str(timestamp)
+    }
+
+    try:
+        response = requests.post(url, data=body, headers=headers)
+        print("📈 CoinDCX response:", response.json())
+
+        return jsonify({
+            "status": "success",
+            "message": "Trade executed",
+            "coindcx_response": response.json()
+        })
+
+    except Exception as e:
+        print("❌ Error placing order:", e)
+        return jsonify({"status": "error", "message": str(e)})
