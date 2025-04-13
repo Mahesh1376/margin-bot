@@ -6,14 +6,15 @@ import hmac
 import hashlib
 import requests
 from dotenv import load_dotenv
-
+import time
 load_dotenv()  # Load variables from .env file
 
 app = Flask(__name__)
 
 # Load sensitive info
-API_KEY = os.getenv('c8a90d84e6c1098d453f216fdb0f6480d7b3cad202b68cc3')
-API_SECRET = os.getenv('1b7888990f5090c993a4cc0ce89723462fa89982ff7dcc652adad5c6a064f62c')
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+
 print("DEBUG: API_KEY =", API_KEY)
 print("DEBUG: API_SECRET =", API_SECRET)
 
