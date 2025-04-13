@@ -51,17 +51,17 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     
-   data = request.get_json()	
+    data = request.get_json()	
 
-   if not data:
-     return jsonify({'status': 'error', 'message': 'No JSON received'}), 400
-
+    if not data:
+       return jsonify({'status': 'error', 'message': 'No JSON received'}), 400
+	    	
     symbol = data.get('symbol')
     side = data.get('side')
     qty = data.get('qty')
 
     if not symbol or not side or not qty:
-        return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
+       return jsonify({'status': 'error', 'message': 'Missing parameters'}), 400
 
     print(f"Received trade request: {symbol}, {side}, {qty}")
     return jsonify({'status': 'success', 'message': 'Trade executed'})
